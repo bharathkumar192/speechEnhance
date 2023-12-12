@@ -7,10 +7,10 @@ from hume.models.config import LanguageConfig, ProsodyConfig
 app = Flask(__name__)
 
 # Configure the upload folder and allowed extensions
-UPLOAD_FOLDER = '/Users/bhkakuma/Downloads/assignments/dheemanth'
+# UPLOAD_FOLDER = '/Users/bhkakuma/Downloads/assignments/dheemanth'
 ALLOWED_EXTENSIONS = {'mp4', 'wav', 'mp3'}
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route('/', methods=['POST','GET'])
 def home():
@@ -34,12 +34,12 @@ def upload_file():
 
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
+        # filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filename)
 
         # Process the file
         client = HumeBatchClient("zVU7pn8hIYx1TpOYAqQkAFGviXcY242Xvkx1PcfSoD9GUyGn")
-        job = client.submit_job(urls=[],files=[filepath], configs=[LanguageConfig(granularity="sentence"), ProsodyConfig()])
+        job = client.submit_job(urls=[],files=[filename], configs=[LanguageConfig(granularity="sentence"), ProsodyConfig()])
         job.await_complete()
         predictions = job.get_predictions()
 
