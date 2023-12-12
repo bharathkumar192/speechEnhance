@@ -61,7 +61,7 @@ def upload_file():
                         })
 
         # Optionally delete the file after processing
-        os.remove(filepath)
+        os.remove(filename)
 
         return jsonify(json_data)
 
