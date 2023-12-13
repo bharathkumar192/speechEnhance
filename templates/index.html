@@ -158,7 +158,7 @@
                     // Create a div for the GPT response and add it to the chat history
                     var gptMessage = document.createElement('div');
                     gptMessage.classList.add('gpt-message');
-                    gptMessage.textContent = data; // Use the plain text response
+                    gptMessage.innerText = data; // Use the plain text response
                     chatHistory.appendChild(gptMessage);
                 })
                 .catch(error => {
