@@ -1,3 +1,7 @@
 hume
 flask
+<<<<<<< HEAD
 openai
+=======
+openai
+>>>>>>> 04704f5d3e9d48d8adce888990edc722b6d6502f
