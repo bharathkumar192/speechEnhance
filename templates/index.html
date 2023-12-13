@@ -1,13 +1,176 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>File Upload</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Time Speech Analysis</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .gpt-message {
+                background-color: #e7e7e7; /* Light grey background */
+                padding: 10px;
+                border-radius: 10px;
+                margin-bottom: 10px;
+            }
+            
+            .user-message {
+                background-color: #dbf3fa; /* Light blue background */
+                padding: 10px;
+                border-radius: 10px;
+                margin-bottom: 10px;
+                text-align: right;
+            }
+            
+        .header {
+            background-color: #6c5ce7;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-img {
+            min-height: 150px;
+            min-width: 150px;
+        }
+        .subtitle {
+            font-size: 1.2em;
+            color: #dfe6e9;
+        }
+        .main-content {
+            padding: 20px;
+            display: flex;
+            justify-content: space-around;
+        }
+        .upload-area, .chat-area {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            width: 45%; /* Adjust width as necessary */
+        }
+        .upload-area label, .chat-area label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .upload-area input[type="file"] {
+            margin-bottom: 10px;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px; /* Space between buttons */
+        }
+        .chat-history {
+            height: 300px; /* Adjust as needed */
+            border: 5px solid #ccc;
+            padding: 10px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            border-radius: 10px;
+        }
+        .chat-input {
+            resize: none;
+        }
+        .uploadbutton{
+            max-width:50%;
+        }
+        #file-upload{
+            border: 5px solid #ccc;
+            border-radius:10px;
+            min-height:55px;
+        }
+        .loader {
+            border: 6px solid #f3f3f3; /* Light grey */
+            border-top: 6px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            display: none; /* Hidden by default */
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin-left: -25px; /* Half width */
+            margin-top: -25px; /* Half height */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
-    <h1>Upload File</h1>
-    <form action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="file">
-        <input type="submit" value="Upload">
-    </form>
+    <div class="header">
+        <div>
+            <h1>Real Time Speech Analysis</h1>
+            <p class="subtitle">Gain Deeper Insight into Your Speech Dynamics.</p>
+        </div>
+        <img src="/static/header.svg" class="header-img" alt="Sample Image">
+    </div>
+    <div class="main-content">
+        <div class="upload-area">
+            <label for="file-upload">1. Upload Speech File</label>
+            <input id="file-upload" type="file" class="form-control">
+            <button id="upload-btn" class="btn uploadbutton btn-primary" type="button">Upload</button>
+            <br>
+            <div id="loader" class="loader"></div>
+        </div>
+        <div class="chat-area">
+            <label for="chat-history">2. Generate Feedback</label>
+            <div id="chat-history" class="chat-history"></div>
+            <textarea id="chat-input" class="form-control chat-input" placeholder="Enter input to generate text" rows="1"></textarea>
+            <br>
+            <button id="send-btn" class="btn btn-primary">Send</button>
+        </div>
+    </div>
+    <script>
+        document.getElementById('upload-btn').addEventListener('click', function() {
+            console.log('clicked');
+            var fileInput = document.getElementById('file-upload');
+            var file = fileInput.files[0];
+            var loader = document.getElementById('loader');
+            var chatHistory = document.getElementById('chat-history');
+        
+            if (file) {
+                loader.style.display = 'block'; // Show the loader
+                chatHistory.innerHTML = ''; // Clear previous results
+        
+                // Create a FormData object and append the file
+                var formData = new FormData();
+                formData.append('file', file);
+        
+                // Send the file to the Flask endpoint
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.text()) // Handle text response
+                .then(data => {
+                    loader.style.display = 'none'; // Hide the loader
+        
+                    // Create a div for the GPT response and add it to the chat history
+                    var gptMessage = document.createElement('div');
+                    gptMessage.classList.add('gpt-message');
+                    gptMessage.textContent = data; // Use the plain text response
+                    chatHistory.appendChild(gptMessage);
+                })
+                .catch(error => {
+                    loader.style.display = 'none'; // Hide the loader
+                    console.error('Error:', error);
+                });
+            } else {
+                alert('Please select a file to upload.');
+            }
+        });
+        
+        
+    </script>
 </body>
 </html>
