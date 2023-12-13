@@ -46,7 +46,7 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_top_five_emotions(emotions):
-    return sorted(emotions, key=lambda x: x['score'], reverse=True)[:5]
+    return sorted(emotions, key=lambda x: x['score'], reverse=True)[:1]
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
