@@ -169,8 +169,78 @@
                 alert('Please select a file to upload.');
             }
         });
+
+        // Function to collect chat history
+        function getChatHistory() {
+            var chatHistoryDivs = document.getElementById('chat-history').children;
+            var chatHistory = [];
+            for (var i = 0; i < chatHistoryDivs.length; i++) {
+                var div = chatHistoryDivs[i];
+                if (div.classList.contains('gpt-message')) {
+                    chatHistory.push({'role': 'system', 'content': div.textContent });
+                } else if (div.classList.contains('user-message')) {
+                    chatHistory.push({'role' : 'user', 'content': div.textContent });
+                }
+            }
+            return chatHistory;
+        }
+
+        function displayMessage(content, className) {
+            var chatHistory = document.getElementById('chat-history');
+            var messageDiv = document.createElement('div');
+            messageDiv.classList.add(className);
         
+            // Use innerText instead of textContent to preserve line breaks and white space
+            messageDiv.innerText = content;
+            
+            chatHistory.appendChild(messageDiv); // Append to chat history
+            chatHistory.scrollTop = chatHistory.scrollHeight; // Scroll to the bottom
+        }
         
+    
+        // Event listener for the 'Send' button
+        document.getElementById('send-btn').addEventListener('click', function() {
+            var chatInput = document.getElementById('chat-input');
+            var userMessage = chatInput.value.trim();
+            var chatHistory = getChatHistory(); // Get the existing chat history
+    
+            if (userMessage) {
+                loader.style.display = 'block';
+                // Append the new user message to the chat history
+                chatHistory.push({ 'role' : 'user', 'content' : userMessage });
+    
+                // Create a div for the user message and add it to the chat history display
+                var userMessageDiv = document.createElement('div');
+                userMessageDiv.classList.add('user-message');
+                userMessageDiv.textContent = userMessage;
+                document.getElementById('chat-history').appendChild(userMessageDiv);
+    
+                // Clear the input field
+                chatInput.value = '';
+                console.log(chatHistory);
+    
+                // Send the chat history to the Flask endpoint
+                fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(chatHistory)
+                })
+                .then(response => response.text()) // Handle text response
+                .then(data => {
+                    loader.style.display = 'none';
+                    displayMessage(data, 'gpt-message');
+                })
+                .catch(error => {
+                    loader.style.display = 'none';
+                    console.error('Error:', error);
+                });
+            } else {
+                alert('Please enter a message.');
+            }
+        });
     </script>
+    
 </body>
 </html>

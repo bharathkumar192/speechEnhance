@@ -8,6 +8,31 @@ from openai import OpenAI
 
 
 app = Flask(__name__)
+prompt_msg = '''
+You are a speech feedback GPT
+
+Your goal is to help user getting right feedback to talk better. You will get an input from our speech emotion detection model, which looks like Sentence (which is transcribed) and Emotion of that sentence which our model analyzed
+
+Sentence (emotion) , Sentence (emotion)
+And inputs include a series of sentences with emotions attached to it 
+
+Your goal is to understand the context of that speech 
+And next produce a constructive feedback of that speech to make it better 
+
+As you are a chatbot, you will receive followup questions also asking for more feedback , suggestions to improve , simplification of feedback , substitution sentences 
+
+Main Rule -Always give feedback by pointing out the sentence which has to be changed , and where he had to make changes 
+
+Your output will provide a feedback 
+1- Which looks for emotion and context mis-match ,(as some speeches look good on paper , but delivered with terrible emotions)
+
+2- Which looks for sentences which are delivered well with the right emotion but can be improved if substituted with different sentences. 
+
+3- be a great conversationalist when you were asked followup questions based on your output to help him deliver best talk 
+
+4- Help with any minor mistakes which he is doing which can make the talk better if avoided
+
+5- look for any sentences which can create audience engagement, and suggest if none are mentioned.'''
 
 
 ALLOWED_EXTENSIONS = {'mp4', 'wav', 'mp3','flac'}
@@ -73,37 +98,10 @@ def upload_file():
 
 
 def initial_suggestion(data):
-    suggestion = ''
-    key = os.environ.get("API_KEY")
+    key = os.environ.get('API_KEY')
     print(key)
     client = OpenAI(api_key=key)
-    prompt_msg = '''
-You are a speech feedback GPT
-
-Your goal is to help user getting right feedback to talk better. You will get an input from our speech emotion detection model, which looks like Sentence (which is transcribed) and Emotion of that sentence which our model analyzed
-
-Sentence (emotion) , Sentence (emotion)
-And inputs include a series of sentences with emotions attached to it 
-
-Your goal is to understand the context of that speech 
-And next produce a constructive feedback of that speech to make it better 
-
-As you are a chatbot, you will receive followup questions also asking for more feedback , suggestions to improve , simplification of feedback , substitution sentences 
-
-Main Rule -Always give feedback by pointing out the sentence which has to be changed , and where he had to make changes 
-
-Your output will provide a feedback 
-1- Which looks for emotion and context mis-match ,(as some speeches look good on paper , but delivered with terrible emotions)
-
-2- Which looks for sentences which are delivered well with the right emotion but can be improved if substituted with different sentences. 
-
-3- be a great conversationalist when you were asked followup questions based on your output to help him deliver best talk 
-
-4- Help with any minor mistakes which he is doing which can make the talk better if avoided
-
-5- look for any sentences which can create audience engagement, and suggest if none are mentioned.'''
-
-
+    suggestion = '' 
     completion = client.chat.completions.create(
     model="gpt-3.5-turbo",
     messages=[
@@ -116,30 +114,27 @@ Your output will provide a feedback
 
 
 
+def further_suggestions(data):
+    key = os.environ.get('API_KEY')
+    print(key)
+    client = OpenAI(api_key=key)
+    suggestion = ''
+    messages = [{"role": "system", "content": prompt_msg}]
+    for x in data:
+        print(x)
+        messages.append(x)
+    print(messages)
+    completion = client.chat.completions.create( model="gpt-3.5-turbo", messages=messages)
+    suggestion = completion.choices[0].message.content 
+    return suggestion
 
-# @app.route('/chat', methods=['POST'])
-# def chat():
-#     user_message = request.json.get('message')
-#     chat_history = session.get('chat_history', [])  # Retrieve chat history or initialize if not present
 
-#     if user_message:
-#         # Add the user's message to the history
-#         chat_history.append({'user': user_message})
+@app.route('/chat', methods=['POST'])
+def chat():
+    data = request.json  
+    response = further_suggestions(data)
+    return response
 
-#         # Call GPT or any other service you want here, using the chat history
-#         # For example, let's say you get a response like this:
-#         gpt_response = "This is a dummy response."
-
-#         # Add GPT's response to the history
-#         chat_history.append({'gpt': gpt_response})
-
-#         # Save the updated chat history back into the session
-#         session['chat_history'] = chat_history
-
-#         # Return both the user's message and GPT's response
-#         return jsonify({'user': user_message, 'gpt': gpt_response})
-
-#     return jsonify({'error': 'No message received'}), 400
 
 if __name__ == '__main__':
     app.run(debug=True)
